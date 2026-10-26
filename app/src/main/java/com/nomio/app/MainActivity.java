@@ -3,105 +3,424 @@ package com.nomio.app;
 import android.app.Activity;
 import android.os.Bundle;
 import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.EditText;
 
 public class MainActivity extends Activity {
 
-    private final int black = Color.rgb(12, 12, 12);
-    private final int gold = Color.rgb(222, 186, 112);
-    private LinearLayout content;
+    private final int bg = Color.rgb(9, 9, 11);
+    private final int cardBg = Color.rgb(22, 22, 25);
+    private final int gold = Color.rgb(232, 190, 105);
+    private final int white = Color.rgb(247, 245, 240);
+    private final int muted = Color.rgb(160, 157, 150);
+
+    private LinearLayout root;
+    private LinearLayout menu;
+    private TextView cartCount;
+    private int cartItems = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        getWindow().setStatusBarColor(bg);
+        getWindow().setNavigationBarColor(bg);
+
         ScrollView scroll = new ScrollView(this);
-        scroll.setBackgroundColor(black);
+        scroll.setFillViewport(true);
+        scroll.setBackgroundColor(bg);
 
-        content = new LinearLayout(this);
-        content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(22, 30, 22, 30);
+        root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(dp(20), dp(20), dp(20), dp(28));
 
-        scroll.addView(content);
+        scroll.addView(root);
         setContentView(scroll);
 
-        addText("N O M I O", 32, gold, true);
-        addText("TASTE BEYOND ORDINARY", 12, Color.WHITE, false);
-        addText("Good food. Great moments.", 23, Color.WHITE, true);
-        addText("Discover delicious food near you.", 15, gold, false);
-
-        addSection("POPULAR NEAR YOU");
-
-        addRestaurant("Royal Biryani House", "Biryani • Indian", "₹180");
-        addRestaurant("Golden Crust Pizza", "Pizza • Italian", "₹249");
-        addRestaurant("Spice Street", "North Indian • Meals", "₹150");
-        addRestaurant("Burger District", "Burgers • Fast Food", "₹129");
-
-        addSection("YOUR NOMIO PROMISE");
-        addText("🎁 First order: FREE delivery offer", 16,
-                Color.WHITE, false);
-        addText("Delivery fee after offer: ₹30", 15, gold, false);
-        addText("Restaurant platform fee: ₹15 per completed order",
-                14, Color.WHITE, false);
-
-        addText("Welcome to NOMIO ✨", 18, gold, true);
+        buildHeader();
+        buildHero();
+        buildSearch();
+        buildCategories();
+        buildMenu();
+        buildFooter();
     }
 
-    private void addText(String text, int size, int color, boolean bold) {
-        TextView view = new TextView(this);
-        view.setText(text);
-        view.setTextSize(size);
-        view.setTextColor(color);
-        view.setPadding(0, 10, 0, 10);
+    private int dp(float value) {
+        return (int) (value * getResources()
+                .getDisplayMetrics().density + 0.5f);
+    }
 
-        if (bold) {
-            view.setTypeface(null, android.graphics.Typeface.BOLD);
+    private GradientDrawable shape(
+            int color, int strokeColor, int radius) {
+
+        GradientDrawable drawable = new GradientDrawable();
+        drawable.setColor(color);
+        drawable.setCornerRadius(dp(radius));
+
+        if (strokeColor != Color.TRANSPARENT) {
+            drawable.setStroke(dp(1), strokeColor);
         }
 
-        content.addView(view);
+        return drawable;
     }
 
-    private void addSection(String title) {
-        TextView view = new TextView(this);
-        view.setText(title);
-        view.setTextSize(15);
-        view.setTextColor(gold);
-        view.setTypeface(null, android.graphics.Typeface.BOLD);
-        view.setPadding(0, 26, 0, 12);
-        content.addView(view);
+    private TextView text(
+            String value, int size, int color, boolean bold) {
+
+        TextView t = new TextView(this);
+        t.setText(value);
+        t.setTextSize(size);
+        t.setTextColor(color);
+        t.setGravity(Gravity.CENTER_VERTICAL);
+
+        if (bold) {
+            t.setTypeface(Typeface.create(
+                    "sans-serif", Typeface.BOLD));
+        }
+
+        return t;
     }
 
-    private void addRestaurant(String name, String category, String price) {
+    private void gap(int height) {
+        View v = new View(this);
+        root.addView(v, new LinearLayout.LayoutParams(
+                1, dp(height)));
+    }
+
+    private void buildHeader() {
+
+        LinearLayout header = new LinearLayout(this);
+        header.setGravity(Gravity.CENTER_VERTICAL);
+        header.setOrientation(LinearLayout.HORIZONTAL);
+
+        LinearLayout brand = new LinearLayout(this);
+        brand.setOrientation(LinearLayout.VERTICAL);
+
+        TextView logo = text("NOMIO", 27, gold, true);
+        logo.setLetterSpacing(0.16f);
+
+        TextView tagline = text(
+                "TASTE BEYOND ORDINARY", 9, muted, true);
+
+        brand.addView(logo);
+        brand.addView(tagline);
+
+        header.addView(brand, new LinearLayout.LayoutParams(
+                0, -2, 1));
+
+        TextView cart = text("CART  •  0", 12, gold, true);
+        cart.setGravity(Gravity.CENTER);
+        cart.setPadding(dp(13), dp(12), dp(13), dp(12));
+        cart.setBackground(shape(cardBg, gold, 20));
+        cartCount = cart;
+
+        cart.setOnClickListener(v ->
+                Toast.makeText(this,
+                        "Cart feature is coming in Step B!",
+                        Toast.LENGTH_SHORT).show());
+
+        header.addView(cart);
+        root.addView(header);
+
+        gap(30);
+    }
+
+    private void buildHero() {
+
+        LinearLayout hero = new LinearLayout(this);
+        hero.setOrientation(LinearLayout.VERTICAL);
+        hero.setPadding(dp(20), dp(25), dp(20), dp(24));
+        hero.setBackground(shape(
+                Color.rgb(25, 22, 17),
+                Color.rgb(100, 77, 39), 24));
+
+        TextView badge = text(
+                "✦  THE ART OF GOOD FOOD", 10, gold, true);
+
+        hero.addView(badge);
+
+        TextView title = text(
+                "Your cravings.\\nOur obsession.",
+                31, white, true);
+
+        title.setLineSpacing(dp(4), 1f);
+
+        LinearLayout.LayoutParams titleParams =
+                new LinearLayout.LayoutParams(-1, -2);
+        titleParams.topMargin = dp(17);
+        hero.addView(title, titleParams);
+
+        TextView subtitle = text(
+                "Discover exceptional flavours,\\n"
+                + "delivered to your doorstep.",
+                14, muted, false);
+
+        subtitle.setLineSpacing(dp(4), 1f);
+
+        LinearLayout.LayoutParams subParams =
+                new LinearLayout.LayoutParams(-1, -2);
+        subParams.topMargin = dp(12);
+        hero.addView(subtitle, subParams);
+
+        TextView explore = text(
+                "EXPLORE THE MENU     →", 12, bg, true);
+
+        explore.setGravity(Gravity.CENTER);
+        explore.setPadding(dp(18), dp(15), dp(18), dp(15));
+        explore.setBackground(shape(gold, Color.TRANSPARENT, 12));
+
+        LinearLayout.LayoutParams btnParams =
+                new LinearLayout.LayoutParams(-1, -2);
+        btnParams.topMargin = dp(22);
+        hero.addView(explore, btnParams);
+
+        explore.setOnClickListener(v -> {
+            if (menu != null) {
+                menu.requestFocus();
+                Toast.makeText(this,
+                        "Discover our menu below",
+                        Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        root.addView(hero);
+        gap(28);
+    }
+
+    private void buildSearch() {
+
+        TextView heading = text(
+                "Find your next favourite", 21, white, true);
+
+        root.addView(heading);
+        gap(13);
+
+        EditText search = new EditText(this);
+        search.setSingleLine(true);
+        search.setTextColor(white);
+        search.setHintTextColor(muted);
+        search.setHint("⌕   Search dishes or restaurants");
+        search.setTextSize(14);
+        search.setPadding(dp(16), dp(7), dp(16), dp(7));
+        search.setBackground(shape(cardBg, Color.DKGRAY, 14));
+
+        root.addView(search, new LinearLayout.LayoutParams(
+                -1, dp(54)));
+
+        gap(25);
+    }
+
+    private void buildCategories() {
+
+        root.addView(text(
+                "EXPLORE BY MOOD", 12, gold, true));
+
+        gap(13);
+
+        HorizontalScrollView hsv = new HorizontalScrollView(this);
+        hsv.setHorizontalScrollBarEnabled(false);
+
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+
+        String[] categories = {
+                "✦  All", "🍛  Indian", "🍕  Pizza",
+                "🍔  Burgers", "🍰  Desserts"
+        };
+
+        for (int i = 0; i < categories.length; i++) {
+
+            final String category = categories[i];
+
+            TextView chip = text(category, 12,
+                    i == 0 ? bg : white, true);
+
+            chip.setGravity(Gravity.CENTER);
+            chip.setPadding(dp(16), dp(12), dp(16), dp(12));
+
+            chip.setBackground(shape(
+                    i == 0 ? gold : cardBg,
+                    i == 0 ? Color.TRANSPARENT
+                            : Color.rgb(55, 55, 58),
+                    24));
+
+            LinearLayout.LayoutParams params =
+                    new LinearLayout.LayoutParams(-2, -2);
+
+            params.setMargins(0, 0, dp(9), 0);
+            row.addView(chip, params);
+
+            chip.setOnClickListener(v ->
+                    Toast.makeText(this,
+                            category + " selected",
+                            Toast.LENGTH_SHORT).show());
+        }
+
+        hsv.addView(row);
+        root.addView(hsv);
+
+        gap(29);
+    }
+
+    private void buildMenu() {
+
+        TextView title = text(
+                "Signature selections", 22, white, true);
+
+        root.addView(title);
+        gap(5);
+
+        root.addView(text(
+                "A little extraordinary, every day.",
+                13, muted, false));
+
+        gap(17);
+
+        menu = new LinearLayout(this);
+        menu.setOrientation(LinearLayout.VERTICAL);
+        root.addView(menu);
+
+        addFood("ROYAL CLASSIC",
+                "Royal Biryani",
+                "Aromatic rice, rich spices",
+                "₹180", "🍛");
+
+        addFood("THE ITALIAN EDIT",
+                "Golden Crust Pizza",
+                "Melty cheese, signature herbs",
+                "₹249", "🍕");
+
+        addFood("THE COMFORT CLUB",
+                "Smoky Classic Burger",
+                "Crispy layers, bold flavour",
+                "₹129", "🍔");
+
+        addFood("SWEET FINISH",
+                "Chocolate Dream",
+                "A rich and creamy indulgence",
+                "₹99", "🍰");
+    }
+
+    private void addFood(
+            String label,
+            String name,
+            String description,
+            String price,
+            String emoji) {
+
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(18, 15, 18, 15);
-        card.setBackgroundColor(Color.rgb(30, 30, 30));
+        card.setPadding(dp(17), dp(16), dp(17), dp(16));
+        card.setBackground(shape(cardBg,
+                Color.rgb(48, 45, 39), 19));
 
-        TextView title = new TextView(this);
-        title.setText(name);
-        title.setTextColor(gold);
-        title.setTextSize(19);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams cardParams =
+                new LinearLayout.LayoutParams(-1, -2);
 
-        TextView details = new TextView(this);
-        details.setText(category + "   •   From " + price);
-        details.setTextColor(Color.WHITE);
-        details.setTextSize(14);
-        details.setPadding(0, 8, 0, 0);
+        cardParams.bottomMargin = dp(13);
+        menu.addView(card, cardParams);
 
-        card.addView(title);
-        card.addView(details);
+        TextView tag = text(label, 9, gold, true);
+        tag.setLetterSpacing(0.12f);
+        card.addView(tag);
 
-        LinearLayout.LayoutParams params =
-                new LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
 
-        params.setMargins(0, 0, 0, 14);
-        content.addView(card, params);
+        LinearLayout info = new LinearLayout(this);
+        info.setOrientation(LinearLayout.VERTICAL);
+
+        TextView foodName = text(name, 18, white, true);
+        foodName.setPadding(0, dp(9), 0, dp(5));
+
+        TextView details = text(
+                description, 12, muted, false);
+
+        TextView cost = text(price, 17, gold, true);
+        cost.setPadding(0, dp(10), 0, 0);
+
+        info.addView(foodName);
+        info.addView(details);
+        info.addView(cost);
+
+        row.addView(info, new LinearLayout.LayoutParams(
+                0, -2, 1));
+
+        TextView icon = text(emoji, 36, white, false);
+        icon.setGravity(Gravity.CENTER);
+        icon.setBackground(shape(
+                Color.rgb(39, 34, 26),
+                Color.rgb(86, 68, 39), 16));
+
+        row.addView(icon, new LinearLayout.LayoutParams(
+                dp(76), dp(76)));
+
+        LinearLayout.LayoutParams rowParams =
+                new LinearLayout.LayoutParams(-1, -2);
+
+        rowParams.topMargin = dp(5);
+        card.addView(row, rowParams);
+
+        TextView add = text("+  ADD TO CART", 11, bg, true);
+        add.setGravity(Gravity.CENTER);
+        add.setPadding(0, dp(13), 0, dp(13));
+        add.setBackground(shape(gold, Color.TRANSPARENT, 11));
+
+        LinearLayout.LayoutParams addParams =
+                new LinearLayout.LayoutParams(-1, -2);
+
+        addParams.topMargin = dp(16);
+        card.addView(add, addParams);
+
+        add.setOnClickListener(v -> {
+            cartItems++;
+            cartCount.setText("CART  •  " + cartItems);
+
+            Toast.makeText(this,
+                    name + " added to cart",
+                    Toast.LENGTH_SHORT).show();
+        });
     }
-                      }
+
+    private void buildFooter() {
+
+        gap(15);
+
+        TextView line = text(
+                "━━━━━━━━━━━━━━━━━━━━", 12, gold, false);
+        line.setGravity(Gravity.CENTER);
+        root.addView(line);
+
+        gap(12);
+
+        TextView logo = text(
+                "N O M I O", 20, gold, true);
+        logo.setGravity(Gravity.CENTER);
+        root.addView(logo);
+
+        TextView tagline = text(
+                "TASTE BEYOND ORDINARY", 10, muted, true);
+        tagline.setGravity(Gravity.CENTER);
+
+        root.addView(tagline);
+        gap(10);
+
+        TextView note = text(
+                "Crafted for the love of great food.",
+                12, muted, false);
+        note.setGravity(Gravity.CENTER);
+
+        root.addView(note);
+    }
+                                   }
